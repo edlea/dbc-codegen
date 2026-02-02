@@ -1,5 +1,5 @@
 use clap::Parser;
-use dbc_codegen::Config;
+use dbc_codegen::{Config, FeatureConfig};
 use std::fs::File;
 use std::{path::PathBuf, process::exit};
 
@@ -16,6 +16,18 @@ struct Cli {
     /// Enable debug printing
     #[arg(long)]
     debug: bool,
+
+    /// Enable #[derive(Debug)] for messages
+    #[arg(long)]
+    impl_debug: bool,
+
+    /// Enable implementation of [Arbitrary] trait
+    #[arg(long)]
+    impl_arbitrary: bool,
+
+    /// Implements std::error::Error for CanError
+    #[arg(long)]
+    impl_error: bool,
 }
 
 fn main() {
@@ -52,6 +64,8 @@ fn main() {
         .dbc_name(&dbc_file_name)
         .dbc_content(&dbc_file)
         .debug_prints(args.debug)
+        .impl_debug(if args.impl_debug { FeatureConfig::Always } else { FeatureConfig::Never })
+        .impl_arbitrary(if args.impl_arbitrary { FeatureConfig::Always } else { FeatureConfig::Never })
         .build();
 
     dbc_codegen::codegen(config, &mut messages_code).unwrap_or_else(|e| {
